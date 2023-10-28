@@ -1,0 +1,122 @@
+# EJERCICIO 2
+from eightpuzzle import Problem
+
+# Apartado C
+class OchoReinas(Problem):
+    def __init__(self):
+        # El estado inicial es un tablero vacío de 8x8 donde ninguna reina se coloca.
+        initial = tuple([-1] * 8)
+        super().__init__(initial)
+
+    def actions(self, state):
+        # Devuelve las columnas en las que se pueden colocar las reinas en el estado actual sin violar las restricciones.
+        valid_actions = []
+        for col in range(8):
+            safe_to_place = True
+            for row, queen_col in enumerate(state):
+                if queen_col == -1:
+                    continue
+                # Verifica si hay un ataque diagonal con la reina en la fila 'row' y columna 'queen_col'.
+                if abs(queen_col - col) == abs(row - state.index(queen_col)):
+                    safe_to_place = False
+                    break
+                # Verifica si hay una reina en la misma columna.
+                if col == queen_col:
+                    safe_to_place = False
+                    break
+            if safe_to_place:
+                valid_actions.append(col)
+        return valid_actions
+
+    def result(self, state, action):
+        # Devuelve el nuevo estado después de colocar una reina en la columna 'action'.
+        row = state.index(-1)
+        new_state = list(state)
+        new_state[row] = action
+        return tuple(new_state)
+
+    def goal_test(self, state):
+        # Verifica si todas las reinas están en posiciones seguras, es decir, ninguna se amenaza mutuamente,
+        # y que todas las reinas estén colocadas en el tablero.
+        if state.count(-1) > 0:
+            return False  # No todas las reinas están colocadas.
+
+        for i in range(7):
+            for j in range(i + 1, 8):
+                if state[i] == state[j] or abs(state[i] - state[j]) == abs(i - j):
+                    return False  # Conflicto entre reinas.
+
+        return True  # Todas las reinas están colocadas y en posiciones seguras.
+
+# Apartado D
+# Crear un objeto de la clase OchoReinas
+problema = OchoReinas()
+
+# Estado inicial
+estado_inicial = problema.initial
+print("Estado Inicial:")
+print(estado_inicial)
+
+# Acciones posibles desde el estado inicial
+acciones_posibles = problema.actions(estado_inicial)
+print("Acciones Posibles:")
+print(acciones_posibles)
+
+# Aplicar una acción y ver el resultado
+if acciones_posibles:
+    accion = acciones_posibles[0]  # Tomemos la primera acción como ejemplo
+    nuevo_estado = problema.result(estado_inicial, accion)
+    print("Nuevo Estado después de aplicar la acción:")
+    print(nuevo_estado)
+
+# Comprobación del objetivo
+es_objetivo = problema.goal_test(estado_inicial)
+print("¿El estado inicial es un estado objetivo?", es_objetivo)
+
+
+# EJERCICIO 3
+from eightpuzzle import breadth_first_tree_search, depth_first_tree_search, depth_limited_search, iterative_deepening_search
+def imprimir_sol(nodo):
+    estado_final = nodo.state
+    print("Reina | Fila | Col")
+    for reina, col in enumerate(estado_final):
+        print(f"Reina {reina + 1} | {reina} | {col}")
+
+problema = OchoReinas()
+
+# Algoritmo de Búsqueda Primero en Anchura (BPA)
+print("BPA")
+nodo_sol_BPA = breadth_first_tree_search(problema)
+if nodo_sol_BPA:
+    print("Solución encontrada:")
+    imprimir_sol(nodo_sol_BPA)
+else:
+    print("No se encontró una solución.")
+
+# Algoritmo de Búsqueda Primero en Profundidad (BPP)
+print("BPP")
+nodo_sol_BPP = depth_first_tree_search(problema)
+if nodo_sol_BPP:
+    print("Solución encontrada:")
+    imprimir_sol(nodo_sol_BPP)
+else:
+    print("No se encontró una solución.")
+
+# Algoritmo de Búsqueda de Profundidad Limitada (BPL)
+print("BPL")
+nodo_sol_BPL = depth_limited_search(problema)
+if nodo_sol_BPL:
+    print("Solución encontrada:")
+    imprimir_sol(nodo_sol_BPL)
+else:
+    print("No se encontró una solución.")
+
+# Algoritmo de Búsqueda de Profundidad Iterativa (BPI)
+print("BPI")
+nodo_sol_BPI = iterative_deepening_search(problema)
+if nodo_sol_BPI:
+    print("Solución encontrada:")
+    imprimir_sol(nodo_sol_BPI)
+else:
+    print("No se encontró una solución.")
+
