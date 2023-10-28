@@ -1,0 +1,128 @@
+# EJERCICIO 4
+import time
+import numpy
+from eightpuzzle import Problem
+from eightpuzzle import breadth_first_tree_search, depth_first_tree_search, depth_limited_search, iterative_deepening_search
+
+# Paso 1
+class NReinas(Problem):
+    def __init__(self, N):
+        # El estado inicial es un tablero vacío de NxN donde ninguna reina se coloca.
+        initial = tuple([-1] * N)
+        super().__init__(initial)
+        self.N = N
+
+    def actions(self, state):
+        # Devuelve las columnas en las que se pueden colocar las reinas en el estado actual sin violar las restricciones.
+        valid_actions = []
+        for col in range(self.N):
+            safe_to_place = True
+            for row, queen_col in enumerate(state):
+                if queen_col == -1:
+                    continue
+                # Verifica si hay un ataque diagonal con la reina en la fila 'row' y columna 'queen_col'.
+                if abs(queen_col - col) == abs(row - state.index(queen_col)):
+                    safe_to_place = False
+                    break
+                # Verifica si hay una reina en la misma columna.
+                if col == queen_col:
+                    safe_to_place = False
+                    break
+            if safe_to_place:
+                valid_actions.append(col)
+        return valid_actions
+
+    def result(self, state, action):
+        # Devuelve el nuevo estado después de colocar una reina en la columna 'action'.
+        row = state.index(-1)
+        new_state = list(state)
+        new_state[row] = action
+        return tuple(new_state)
+
+    def goal_test(self, state):
+        # Verifica si todas las reinas están en posiciones seguras, es decir, ninguna se amenaza mutuamente,
+        # y que todas las reinas estén colocadas en el tablero.
+        if state.count(-1) > 0:
+            return False  # No todas las reinas están colocadas.
+
+        for i in range(self.N - 1):
+            for j in range(i + 1, self.N):
+                if state[i] == state[j] or abs(state[i] - state[j]) == abs(i - j):
+                    return False  # Conflicto entre reinas.
+
+        return True  # Todas las reinas están colocadas y en posiciones seguras.
+
+# Paso 2
+def medir_tiempo(algoritmo, n, m):
+    lista_tiempos = []
+    for i in range(m):
+        problema = NReinas(n)
+        t_inicio = time.time()
+        nodo_sol = algoritmo(problema)
+        t_fin = time.time()
+        t_delta = t_fin - t_inicio
+        lista_tiempos.append(t_delta)
+
+    return lista_tiempos
+
+# Paso 3
+def imprimir_tiempo(alg_tiempo_medio):
+    print("Algoritmo | N | Tiempo")
+    for registro in alg_tiempo_medio:
+        n_alg = registro['n_alg']
+        n = registro['n']
+        t_medio = registro['t_medio']
+        print(f"{n_alg} | {n} | {t_medio:.5f}")
+
+# Paso 4
+def ejecutar_y_medir_tiempos(algoritmo, numeros_reinas, num_ejecuciones):
+    resultados = []
+
+    for n in numeros_reinas:
+            tiempos = medir_tiempo(algoritmo, n, num_ejecuciones)
+            tiempo_medio = numpy.mean(tiempos)
+            resultados.append({'n_alg': algoritmo.__name__, 'n': n, 't_medio': tiempo_medio})
+
+    return resultados
+
+# Comprobación de resultados apartir de las funciones previamente implementadas
+num_reinas = [4, 5, 6, 7]
+num_ejecuciones = 10
+for n in num_reinas:
+    # Comprobar el tiempo promedio para cada algortimo de búsqueda en función del número de reinas
+    tiempos = medir_tiempo(breadth_first_tree_search, n, num_ejecuciones)
+    promedio_tiempo = sum(tiempos) / num_ejecuciones
+    print(f"BPA con {n} reinas:")
+    print(f"Tiempo promedio: {promedio_tiempo} segundos")
+
+    tiempos = medir_tiempo(depth_first_tree_search, n, num_ejecuciones)
+    promedio_tiempo = sum(tiempos) / num_ejecuciones
+    print(f"BPP con {n} reinas:")
+    print(f"Tiempo promedio: {promedio_tiempo} segundos")
+
+    tiempos = medir_tiempo(depth_limited_search, n, num_ejecuciones)
+    promedio_tiempo = sum(tiempos) / num_ejecuciones
+    print(f"BPL con {n} reinas:")
+    print(f"Tiempo promedio: {promedio_tiempo} segundos")
+
+    tiempos = medir_tiempo(iterative_deepening_search, n, num_ejecuciones)
+    promedio_tiempo = sum(tiempos) / num_ejecuciones
+    print(f"BPI con {n} reinas:")
+    print(f"Tiempo promedio: {promedio_tiempo} segundos")
+
+# Comprobar coste para cada algortimo de búsqueda en función del número de reinas.
+# Debido al número de repeticiones y de reinas, su ejecución es lenta.
+numeros_reinas = [4, 5, 6, 7, 8, 9]
+num_ejecuciones = 20
+
+resultados = ejecutar_y_medir_tiempos(breadth_first_tree_search, numeros_reinas, num_ejecuciones)
+imprimir_tiempo(resultados)
+
+resultados = ejecutar_y_medir_tiempos(depth_first_tree_search, numeros_reinas, num_ejecuciones)
+imprimir_tiempo(resultados)
+
+resultados = ejecutar_y_medir_tiempos(depth_limited_search, numeros_reinas, num_ejecuciones)
+imprimir_tiempo(resultados)
+
+resultados = ejecutar_y_medir_tiempos(iterative_deepening_search, numeros_reinas, num_ejecuciones)
+imprimir_tiempo(resultados)
